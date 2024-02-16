@@ -12,9 +12,24 @@
 
 ## WebRequester
 
-The _Plexdata WebRequester_ is a program that can be used instead of Postman to perform HTTP 
-requester. Indeed, the Postman is a pretty good utility, but it becomes more annoying with every 
-new update. Therefore, this utility may serve as some kind of replacement for Postman.
+The _Plexdata WebRequester_ is a program that is able to perform independent HTTP requests and 
+represents therefore an alternative to _Postman_.
+
+In fact, _Postman_ is a really good tool for testing API requests. However, that tool seems to be 
+overloaded with features and functions and each new update reinforces this feeling. Reason enough 
+to write an own tool that supports only essential thinks: firing single requests against an API.
+
+### Features
+
+* The separation into projects and sections is possible.
+* The import of _Postman_ collections (v2 and v2.1).
+* The import and export of projects.
+* The automatic saving of all projects and settings.
+* The cross-sectional sharing of authorizations.
+* And finally the support of variables.
+
+In addition, this program is _portable_ as well as _self-contained_ and therefore no installation 
+is required.
 
 ### Licensing
 
