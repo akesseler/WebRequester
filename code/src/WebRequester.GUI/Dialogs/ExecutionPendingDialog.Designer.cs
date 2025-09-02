@@ -117,7 +117,6 @@ namespace Plexdata.WebRequester.GUI.Dialogs
             this.SizeGripStyle = SizeGripStyle.Hide;
             this.StartPosition = FormStartPosition.Manual;
             this.Text = "Running...";
-            this.TopMost = true;
             tpLayout.ResumeLayout(false);
             tpLayout.PerformLayout();
             this.ResumeLayout(false);
