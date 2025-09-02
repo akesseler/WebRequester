@@ -54,7 +54,9 @@ namespace Plexdata.WebRequester.GUI.Execution
         {
             ResultEntity result = null;
             Stopwatch stopwatch = Stopwatch.StartNew();
-
+#if DEBUG
+            await Task.Delay(10000, cancel);
+#endif
             using (HttpRequestMessage request = this.CreateRequest(entity))
             {
                 try
