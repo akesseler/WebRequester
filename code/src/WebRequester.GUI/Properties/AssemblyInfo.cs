@@ -1,7 +1,7 @@
 /*
  * MIT License
  * 
- * Copyright (c) 2024 plexdata.de
+ * Copyright (c) 2025 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ using System.Runtime.Versioning;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("plexdata.de")]
 [assembly: AssemblyProduct("Plexdata Web Requester")]
-[assembly: AssemblyCopyright("Copyright © 2024 - plexdata.de")]
+[assembly: AssemblyCopyright("Copyright © 2025 - plexdata.de")]
 
 // Disable warning "CA1416: Validate platform compatibility" manually.
 [assembly: SupportedOSPlatform("windows")]
@@ -63,5 +63,5 @@ using System.Runtime.Versioning;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0")]
-[assembly: AssemblyFileVersion("1.0.0")]
+[assembly: AssemblyVersion("1.0.1")]
+[assembly: AssemblyFileVersion("1.0.1")]

@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2024 plexdata.de
+ * Copyright (c) 2025 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -117,7 +117,6 @@ namespace Plexdata.WebRequester.GUI.Dialogs
             this.SizeGripStyle = SizeGripStyle.Hide;
             this.StartPosition = FormStartPosition.Manual;
             this.Text = "Running...";
-            this.TopMost = true;
             tpLayout.ResumeLayout(false);
             tpLayout.PerformLayout();
             this.ResumeLayout(false);

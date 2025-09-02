@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2024 plexdata.de
+ * Copyright (c) 2025 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,9 @@ namespace Plexdata.WebRequester.GUI.Execution
         {
             ResultEntity result = null;
             Stopwatch stopwatch = Stopwatch.StartNew();
-
+#if DEBUG
+            await Task.Delay(10000, cancel);
+#endif
             using (HttpRequestMessage request = this.CreateRequest(entity))
             {
                 try
