@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2024 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ namespace Plexdata.WebRequester.GUI.Dialogs
 
         private void OnLogoClicked(Object sender, EventArgs args)
         {
-            Process.Start(new ProcessStartInfo() { FileName = "http://www.plexdata.de/", UseShellExecute = true });
+            Process.Start("http://www.plexdata.de/");
         }
 
         private void OnCloseButtonClicked(Object sender, EventArgs args)
@@ -211,11 +211,11 @@ namespace Plexdata.WebRequester.GUI.Dialogs
             return String.Empty;
         }
 
-        public static String GetVersion(this Assembly assembly, Int32 digits = 3)
+        public static String GetVersion(this Assembly assembly)
         {
             try
             {
-                return assembly.GetName().Version.ToString(digits);
+                return assembly.GetName().Version.ToString();
             }
             catch { }
 
@@ -272,19 +272,19 @@ namespace Plexdata.WebRequester.GUI.Dialogs
 
         #region Public Properties
 
-        public String Title { get; }
+        public String Title { get; set; }
 
-        public String Company { get; }
+        public String Company { get; set; }
 
-        public String Copyright { get; }
+        public String Copyright { get; set; }
 
-        public String Product { get; }
+        public String Product { get; set; }
 
-        public String FileName { get; }
+        public String FileName { get; set; }
 
-        public String Version { get; }
+        public String Version { get; set; }
 
-        public String Description { get; }
+        public String Description { get; set; }
 
         #endregion
 

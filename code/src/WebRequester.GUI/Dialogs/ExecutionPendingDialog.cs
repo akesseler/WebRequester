@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2024 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ namespace Plexdata.WebRequester.GUI.Dialogs
 {
     public partial class ExecutionPendingDialog : Form
     {
-        private static ExecutionPendingDialog singleton;
+        private static ExecutionPendingDialog instance;
 
         private readonly CancellationTokenSource cancellationTokenSource;
 
@@ -45,51 +45,45 @@ namespace Plexdata.WebRequester.GUI.Dialogs
 
         public static void Display(Control parent, CancellationTokenSource cancel)
         {
-            if (ExecutionPendingDialog.singleton != null)
+            if (ExecutionPendingDialog.instance != null)
             {
                 return;
             }
 
-            ExecutionPendingDialog.singleton = ExecutionPendingDialog.CreateInstance(parent, cancel);
-            ExecutionPendingDialog.singleton.Show();
+            ExecutionPendingDialog.instance = ExecutionPendingDialog.CreateInstance(parent, cancel);
+            ExecutionPendingDialog.instance.Show();
         }
 
         public static void Dismiss()
         {
-            if (ExecutionPendingDialog.singleton == null)
+            if (ExecutionPendingDialog.instance == null)
             {
                 return;
             }
 
-            ExecutionPendingDialog.singleton.Close();
-            ExecutionPendingDialog.singleton = null;
+            ExecutionPendingDialog.instance.Close();
+            ExecutionPendingDialog.instance = null;
         }
 
         private static ExecutionPendingDialog CreateInstance(Control parent, CancellationTokenSource cancel)
         {
-            ExecutionPendingDialog dialog = new ExecutionPendingDialog(cancel);
+            ExecutionPendingDialog instance = new ExecutionPendingDialog(cancel);
 
-            Form window = ExecutionPendingDialog.GetTopMostParentForm(parent);
+            Form form = ExecutionPendingDialog.GetTopMostParentForm(parent);
 
-            if (window != null)
+            if (form != null)
             {
-                window.Enabled = false;
-                dialog.Shown += (s, e) => dialog.BringToFront();
-                window.Activated += (s, e) => dialog.BringToFront();
-                dialog.FormClosed += (s, e) => window.Enabled = true;
-
-                Int32 x = window.Location.X + (window.Size.Width - dialog.Size.Width) / 2;
-                Int32 y = window.Location.Y + (window.Size.Height - dialog.Size.Height) / 2;
-
-                dialog.Location = new Point(x, y);
-                dialog.Owner = window;
+                Int32 x = form.Location.X + (form.Size.Width - instance.Size.Width) / 2;
+                Int32 y = form.Location.Y + (form.Size.Height - instance.Size.Height) / 2;
+                instance.Location = new Point(x, y);
             }
             else
             {
-                dialog.StartPosition = FormStartPosition.CenterScreen;
+                instance.StartPosition = FormStartPosition.CenterScreen;
             }
 
-            return dialog;
+            return instance;
+
         }
 
         private static Form GetTopMostParentForm(Control control)
