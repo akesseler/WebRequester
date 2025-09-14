@@ -22,77 +22,148 @@
  * SOFTWARE.
  */
 
+using Plexdata.Converters;
 using Plexdata.WebRequester.GUI.Extensions;
+using System.Reflection;
 using System.Text;
 
-namespace Plexdata.WebRequester.GUI.Models.Execution
+namespace Plexdata.WebRequester.GUI.Models.Execution;
+
+internal class PayloadEntity
 {
-    internal class PayloadEntity
+    public static PayloadEntity Empty { get; } = new PayloadEntity();
+
+    public static PayloadEntity Create(HttpRequestMessage request, CancellationToken cancel)
     {
-        public static PayloadEntity Empty { get; } = new PayloadEntity();
+        return new PayloadEntity(request?.Content, cancel);
+    }
 
-        public static PayloadEntity Create(HttpRequestMessage request, CancellationToken cancel)
+    public static PayloadEntity Create(HttpResponseMessage response, CancellationToken cancel)
+    {
+        return new PayloadEntity(response?.Content, cancel);
+    }
+
+    private PayloadEntity()
+        : base()
+    {
+    }
+
+    private PayloadEntity(HttpContent content, CancellationToken cancel)
+        : this()
+    {
+        this.CharSet = content?.Headers.ContentType?.CharSet ?? String.Empty;
+        this.MediaType = content?.Headers.ContentType?.MediaType ?? String.Empty;
+        this.Encoding = this.GetEncodingOrDefault(this.CharSet);
+        this.Payload = PayloadEntity.GetPayload(content, cancel);
+    }
+
+    public String CharSet { get; private set; } = String.Empty;
+
+    public String MediaType { get; private set; } = String.Empty;
+
+    public Encoding Encoding { get; private set; } = Encoding.Default;
+
+    public Byte[] Payload { get; private set; } = Array.Empty<Byte>();
+
+    public Boolean HasPayload
+    {
+        get
         {
-            return new PayloadEntity(request?.Content, cancel);
+            return this.Payload.Length > 0;
+        }
+    }
+
+    public String GetPayloadAsString()
+    {
+        // TODO: Solve problem of an unconvertable payload.
+        return this.Encoding.GetString(this.Payload);
+    }
+
+    private static Byte[] GetPayload(HttpContent content, CancellationToken cancel)
+    {
+        if (content == null)
+        {
+            return [];
         }
 
-        public static PayloadEntity Create(HttpResponseMessage response, CancellationToken cancel)
+        if (content is MultipartFormDataContent formData)
         {
-            return new PayloadEntity(response?.Content, cancel);
+            PayloadEntity.HackFileStreamContent(formData);
+        }
+        else if (content is StreamContent streamContent)
+        {
+            PayloadEntity.HackFileStreamContent(streamContent);
         }
 
-        private PayloadEntity()
-            : base()
+        using (MemoryStream memory = new MemoryStream())
         {
+            // Please note that the content stream may
+            // no longer be available after this!
+
+            content.CopyTo(memory, null, cancel);
+
+            return memory.ToArray();
         }
+    }
 
-        private PayloadEntity(HttpContent content, CancellationToken cancel)
-            : this()
+    private static void HackFileStreamContent(MultipartFormDataContent formData)
+    {
+        foreach (HttpContent formItem in formData)
         {
-            this.CharSet = content?.Headers.ContentType?.CharSet ?? String.Empty;
-            this.MediaType = content?.Headers.ContentType?.MediaType ?? String.Empty;
-            this.Encoding = this.GetEncodingOrDefault(this.CharSet);
-            this.Payload = PayloadEntity.GetPayload(content, cancel);
-        }
-
-        public String CharSet { get; private set; } = String.Empty;
-
-        public String MediaType { get; private set; } = String.Empty;
-
-        public Encoding Encoding { get; private set; } = Encoding.Default;
-
-        public Byte[] Payload { get; private set; } = Array.Empty<Byte>();
-
-        public Boolean HasPayload
-        {
-            get
+            if (formItem is StreamContent streamContent)
             {
-                return this.Payload.Length > 0;
+                PayloadEntity.HackFileStreamContent(streamContent);
             }
         }
+    }
 
-        public String GetPayloadAsString()
+    private static void HackFileStreamContent(StreamContent streamContent)
+    {
+        Encoding encoding = Encoding.UTF8;
+
+        FieldInfo fieldInfo = streamContent.GetType().GetField("_content", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        if (fieldInfo.GetValue(streamContent) is FileStream fileStream)
         {
-            // TODO: Solve problem of an unconvertable payload.
-            return this.Encoding.GetString(this.Payload);
+            String fakeData = PayloadEntity.GetConverter().Convert(PayloadEntity.ReadFileData(fileStream, encoding));
+
+            MemoryStream tempStream = new MemoryStream(encoding.GetBytes(fakeData));
+
+            fieldInfo.SetValue(streamContent, tempStream);
+
+            fileStream.Dispose();
+            fileStream = null;
+        }
+    }
+
+    private static Byte[] ReadFileData(FileStream fileStream, Encoding encoding, Int32 limit = 1024)
+    {
+        fileStream.Position = 0;
+
+        using BinaryReader fileReader = new BinaryReader(fileStream);
+
+        Int32 count = fileStream.Length < limit ? (Int32)fileStream.Length : limit;
+        Byte[] bytes = fileReader.ReadBytes(count);
+
+        if (fileStream.Length > bytes.Length)
+        {
+            using MemoryStream tempStream = new MemoryStream();
+
+            tempStream.Write(bytes);
+            tempStream.Write(encoding.GetBytes("MORE DATA..."));
+
+            bytes = tempStream.ToArray();
         }
 
-        private static Byte[] GetPayload(HttpContent content, CancellationToken cancel)
+        return bytes;
+    }
+
+    private static BinConverter GetConverter()
+    {
+        return new BinConverter(new BinConverterSettings()
         {
-            if (content == null)
-            {
-                return Array.Empty<Byte>();
-            }
-
-            using (MemoryStream memory = new MemoryStream())
-            {
-                // Please note that the content stream may
-                // no longer be available after this!
-
-                content.CopyTo(memory, null, cancel);
-
-                return memory.ToArray();
-            }
-        }
+            ByteBlockCount = 16,
+            ByteBlockWidth = 2,
+        });
     }
 }
