@@ -56,7 +56,7 @@ internal class RequestExecutor : IRequestExecutor
         ResultEntity result = null;
         Stopwatch stopwatch = Stopwatch.StartNew();
 #if DEBUG
-        //TODO Enable... await Task.Delay(10000, cancel); 
+        await Task.Delay(10000, cancel);
 #endif
         using (HttpRequestMessage request = this.CreateRequest(entity))
         {
