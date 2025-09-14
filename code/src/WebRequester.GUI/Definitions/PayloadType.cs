@@ -22,11 +22,12 @@
  * SOFTWARE.
  */
 
-namespace Plexdata.WebRequester.GUI.Definitions
+namespace Plexdata.WebRequester.GUI.Definitions;
+
+internal enum PayloadType
 {
-    internal enum PayloadType
-    {
-        None,
-        Text
-    }
+    None,
+    Text,
+    File,
+    Form
 }

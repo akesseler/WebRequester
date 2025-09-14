@@ -22,38 +22,13 @@
  * SOFTWARE.
  */
 
-using System.Net.Mime;
+namespace Plexdata.WebRequester.GUI.Definitions;
 
-namespace Plexdata.WebRequester.GUI.Extensions;
-
-internal static class MimeTypeExtension
+public static class SeparatorType
 {
-    private static readonly String[] mimeTypes;
+    // This is the ASCII for the Group Separator.
+    public const Char GroupSeparator = (Char)0x1D;
 
-    static MimeTypeExtension()
-    {
-        MimeTypeExtension.mimeTypes =
-        [
-            MediaTypeNames.Application.Json,
-            MediaTypeNames.Application.Xml,
-            MediaTypeNames.Application.Octet,
-            MediaTypeNames.Text.Plain,
-            MediaTypeNames.Text.Xml,
-            MediaTypeNames.Text.Csv,
-            MediaTypeNames.Text.Html,
-            MediaTypeNames.Text.JavaScript,
-        ];
-    }
-
-    public static IEnumerable<String> GetSupportedMimeTypes(this Object _)
-    {
-        return MimeTypeExtension.mimeTypes;
-    }
-
-    public static String GetMimeTypeOrDefault(this Object _, String value)
-    {
-        const StringComparison comparison = StringComparison.OrdinalIgnoreCase;
-
-        return MimeTypeExtension.mimeTypes.FirstOrDefault(x => String.Equals(x, value, comparison)) ?? MimeTypeExtension.mimeTypes[0];
-    }
+    // This is the ASCII for the Unit Separator.
+    public const Char UnitSeparator = (Char)0x1F;
 }
