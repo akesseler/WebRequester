@@ -22,15 +22,27 @@
  * SOFTWARE.
  */
 
-namespace Plexdata.WebRequester.GUI.Definitions;
+using Plexdata.WebRequester.GUI.Definitions;
 
-internal static class SeparatorType
+namespace Plexdata.WebRequester.GUI.Events;
+
+internal class FormatPayloadEventArgs : EventArgs
 {
-    // This is the ASCII for the Group Separator.
-    public const Char GroupSeparator = (Char)0x1D;
+    public FormatPayloadEventArgs(FormatType format, String source)
+    {
+        this.Format = format;
+        this.Source = source ?? String.Empty;
+        this.Result = this.Source;
+    }
 
-    // This is the ASCII for the Unit Separator.
-    public const Char UnitSeparator = (Char)0x1F;
+    public FormatType Format { get; }
 
-    public const String Indentation = "  ";
+    public String Source { get; }
+
+    public String Result { get; private set; }
+
+    public void ChangeResult(String result)
+    {
+        this.Result = result ?? String.Empty;
+    }
 }

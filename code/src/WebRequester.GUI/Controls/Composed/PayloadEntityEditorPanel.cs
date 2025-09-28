@@ -369,7 +369,7 @@ internal class PayloadEntityEditorPanel : Panel, IPayloadEntityEditor<PayloadEnt
         this.txContent.ReadOnly = false;
         this.txContent.TabStop = true;
         this.txContent.TabIndex = 0;
-        this.txContent.ContextMenuSelection = TextEditor.ContextMenuItems.Maximal;
+        this.txContent.ContextMenuSelection = TextEditor.ContextMenuItems.Editable;
 
         this.pnContent.Controls.Add(this.fiContent);
 
@@ -381,7 +381,7 @@ internal class PayloadEntityEditorPanel : Panel, IPayloadEntityEditor<PayloadEnt
         this.fiContent.ReadOnly = false;
         this.fiContent.TabStop = true;
         this.fiContent.TabIndex = 0;
-        this.fiContent.ContextMenuSelection = TextEditor.ContextMenuItems.Maximal;
+        this.fiContent.ContextMenuSelection = TextEditor.ContextMenuItems.Editable;
 
         this.pnContent.Controls.Add(this.dgContent);
 

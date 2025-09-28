@@ -22,15 +22,36 @@
  * SOFTWARE.
  */
 
-namespace Plexdata.WebRequester.GUI.Definitions;
+using Newtonsoft.Json;
+using Plexdata.LogWriter.Abstraction;
+using Plexdata.LogWriter.Extensions;
+using Plexdata.WebRequester.GUI.Interfaces;
 
-internal static class SeparatorType
+namespace Plexdata.WebRequester.GUI.Helpers.Formatters;
+
+internal class JsonFormatter : IJsonFormatter
 {
-    // This is the ASCII for the Group Separator.
-    public const Char GroupSeparator = (Char)0x1D;
+    private readonly ILogger logger;
 
-    // This is the ASCII for the Unit Separator.
-    public const Char UnitSeparator = (Char)0x1F;
+    public JsonFormatter(ILogger logger)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-    public const String Indentation = "  ";
+    public String Format(String source)
+    {
+        try
+        {
+            return JsonConvert.SerializeObject(
+                JsonConvert.DeserializeObject(source),
+                Formatting.Indented
+            );
+        }
+        catch (Exception exception)
+        {
+            this.logger.Error("Applying JSON format failed.", exception);
+
+            return source;
+        }
+    }
 }
