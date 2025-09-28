@@ -22,15 +22,11 @@
  * SOFTWARE.
  */
 
-namespace Plexdata.WebRequester.GUI.Definitions;
+using Plexdata.WebRequester.GUI.Definitions;
 
-internal static class SeparatorType
+namespace Plexdata.WebRequester.GUI.Interfaces;
+
+internal interface IPayloadFormatter
 {
-    // This is the ASCII for the Group Separator.
-    public const Char GroupSeparator = (Char)0x1D;
-
-    // This is the ASCII for the Unit Separator.
-    public const Char UnitSeparator = (Char)0x1F;
-
-    public const String Indentation = "  ";
+    String Format(FormatType format, String source);
 }

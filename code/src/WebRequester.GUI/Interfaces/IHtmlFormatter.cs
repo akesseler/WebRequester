@@ -22,15 +22,9 @@
  * SOFTWARE.
  */
 
-namespace Plexdata.WebRequester.GUI.Definitions;
+namespace Plexdata.WebRequester.GUI.Interfaces;
 
-internal static class SeparatorType
+internal interface IHtmlFormatter
 {
-    // This is the ASCII for the Group Separator.
-    public const Char GroupSeparator = (Char)0x1D;
-
-    // This is the ASCII for the Unit Separator.
-    public const Char UnitSeparator = (Char)0x1F;
-
-    public const String Indentation = "  ";
+    String Format(String source);
 }
