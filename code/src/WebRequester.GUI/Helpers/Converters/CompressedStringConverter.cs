@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2026 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,15 @@ namespace Plexdata.WebRequester.GUI.Helpers.Converters
 
             if (result is String source)
             {
-                result = this.DecompressString(source);
+                try
+                {
+                    result = this.DecompressString(source);
+                }
+                catch (InvalidDataException)
+                {
+                    // Ensure backward compatibility!
+                    result = this.DecompressStringLegacy(source);
+                }
             }
 
             return result;
@@ -70,30 +78,32 @@ namespace Plexdata.WebRequester.GUI.Helpers.Converters
                 return String.Empty;
             }
 
-            Byte[] source = Encoding.UTF8.GetBytes(value);
+            using MemoryStream result = new MemoryStream();
+            using GZipStream zipper = new GZipStream(result, CompressionMode.Compress);
 
-            using (MemoryStream stream = new MemoryStream())
-            {
-                using (GZipStream zipper = new GZipStream(stream, CompressionMode.Compress, true))
-                {
-                    zipper.Write(source, 0, source.Length);
-                }
+            zipper.Write(Encoding.UTF8.GetBytes(value));
+            zipper.Flush();
 
-                stream.Position = 0;
-
-                Byte[] compressed = new Byte[stream.Length];
-
-                stream.Read(compressed, 0, compressed.Length);
-
-                Byte[] result = new Byte[compressed.Length + 4];
-                Buffer.BlockCopy(compressed, 0, result, 4, compressed.Length);
-                Buffer.BlockCopy(BitConverter.GetBytes(source.Length), 0, result, 0, 4);
-
-                return Convert.ToBase64String(result);
-            }
+            return Convert.ToBase64String(result.ToArray());
         }
 
         private String DecompressString(String value)
+        {
+            if (String.IsNullOrEmpty(value))
+            {
+                return String.Empty;
+            }
+
+            using MemoryStream source = new MemoryStream(Convert.FromBase64String(value));
+            using GZipStream zipper = new GZipStream(source, CompressionMode.Decompress);
+            using MemoryStream result = new MemoryStream();
+
+            zipper.CopyTo(result);
+
+            return Encoding.UTF8.GetString(result.ToArray());
+        }
+
+        private String DecompressStringLegacy(String value)
         {
             if (String.IsNullOrEmpty(value))
             {

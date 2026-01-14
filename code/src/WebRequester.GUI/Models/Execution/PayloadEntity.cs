@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2026 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -75,7 +75,11 @@ internal class PayloadEntity
 
     public String GetPayloadAsString()
     {
-        // TODO: Solve problem of an unconvertable payload.
+        if (!PayloadEntity.CanConvertPayloadToDisplayableContent(this.Encoding, this.Payload))
+        {
+            return PayloadEntity.GetConverter().Convert(this.Payload);
+        }
+
         return this.Encoding.GetString(this.Payload);
     }
 
@@ -165,5 +169,25 @@ internal class PayloadEntity
             ByteBlockCount = 16,
             ByteBlockWidth = 2,
         });
+    }
+
+    private static Boolean CanConvertPayloadToDisplayableContent(Encoding encoding, Byte[] payload)
+    {
+        try
+        {
+            encoding = encoding.Clone() as Encoding;
+            encoding.DecoderFallback = DecoderFallback.ExceptionFallback;
+
+            return encoding.GetString(payload).All(x => !Char.IsControl(x) || x == '\n' || x == '\r' || x == '\t');
+        }
+        catch (DecoderFallbackException)
+        {
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+
+        return false;
     }
 }

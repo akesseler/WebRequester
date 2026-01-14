@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2026 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -469,6 +469,7 @@ namespace Plexdata.WebRequester.GUI.Controls
 
         private void OnContextMenuOpening(Object sender, CancelEventArgs args)
         {
+            this.miCreate.Enabled = false;
             this.miPrompt.Enabled = false;
             this.miCopy.Enabled = false;
             this.miCut.Enabled = false;
@@ -478,16 +479,34 @@ namespace Plexdata.WebRequester.GUI.Controls
             {
                 if (entity is SectionEntity section)
                 {
+                    this.miCreate.Tag = typeof(RequestEntity);
+                    this.miCreate.Enabled = true;
+
                     this.miPrompt.Enabled = true;
                     this.miPrompt.Text = section.Visible ? "Show" : "Open";
                 }
                 else if (entity is RequestEntity request)
                 {
+                    this.miCreate.Tag = null;
+                    this.miCreate.Enabled = false;
+
                     this.miPrompt.Enabled = true;
                     this.miPrompt.Text = request.Visible ? "Show" : "Open";
                 }
+                else if (entity is ProjectEntity project)
+                {
+                    this.miCreate.Tag = typeof(SectionEntity);
+                    this.miCreate.Enabled = true;
+
+                    this.miPrompt.Enabled = false;
+                    this.miPrompt.Text = "Open";
+                }
                 else
                 {
+                    this.miCreate.Tag = null;
+                    this.miCreate.Enabled = false;
+
+                    this.miPrompt.Enabled = false;
                     this.miPrompt.Text = "Open";
                 }
 
@@ -553,6 +572,21 @@ namespace Plexdata.WebRequester.GUI.Controls
             if (this.btRemove.Enabled)
             {
                 this.btRemove.PerformClick();
+            }
+        }
+
+        private void OnContextMenuCreateClicked(Object sender, EventArgs args)
+        {
+            if (this.miCreate.Tag is Type type)
+            {
+                if (type == typeof(SectionEntity))
+                {
+                    this.miSection.PerformClick();
+                }
+                else if (type == typeof(RequestEntity))
+                {
+                    this.miRequest.PerformClick();
+                }
             }
         }
 

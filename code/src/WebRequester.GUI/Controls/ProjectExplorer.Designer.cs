@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2026 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,6 +65,7 @@ namespace Plexdata.WebRequester.GUI.Controls
             btRename = new ToolStripButton();
             tvProjects = new TreeViewEx();
             msContext = new ContextMenuStrip(this.components);
+            miCreate = new ToolStripMenuItem();
             miPrompt = new ToolStripMenuItem();
             miSeparator1 = new ToolStripSeparator();
             miCopy = new ToolStripMenuItem();
@@ -170,10 +171,18 @@ namespace Plexdata.WebRequester.GUI.Controls
             // 
             // msContext
             // 
-            msContext.Items.AddRange(new ToolStripItem[] { miPrompt, miSeparator1, miCopy, miCut, miPaste, miSeparator2, miRename, miRemove });
+            msContext.Items.AddRange(new ToolStripItem[] { miCreate, miPrompt, miSeparator1, miCopy, miCut, miPaste, miSeparator2, miRename, miRemove });
             msContext.Name = "contextMenuStrip1";
             msContext.Size = new Size(118, 148);
             msContext.Opening += this.OnContextMenuOpening;
+            // 
+            // miCreate
+            // 
+            miCreate.Image = Properties.Resources.AddSmall;
+            miCreate.Name = "miCreate";
+            miCreate.Size = new Size(117, 22);
+            miCreate.Text = "New";
+            miCreate.Click += this.OnContextMenuCreateClicked;
             // 
             // miPrompt
             // 
@@ -266,6 +275,7 @@ namespace Plexdata.WebRequester.GUI.Controls
         private ToolStripMenuItem miCopy;
         private ToolStripMenuItem miCut;
         private ToolStripMenuItem miPaste;
+        private ToolStripMenuItem miCreate;
         private ToolStripMenuItem miPrompt;
         private ToolStripSeparator miSeparator1;
         private ToolStripMenuItem miRemove;
