@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2026 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,13 @@
  * SOFTWARE.
  */
 
+using Microsoft.Win32;
 using Plexdata.WebRequester.GUI.Controls.General;
 using Plexdata.WebRequester.GUI.Events;
 using Plexdata.WebRequester.GUI.Extensions;
 using Plexdata.WebRequester.GUI.Models.Execution;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Plexdata.WebRequester.GUI.Controls.Composed;
 
@@ -220,6 +222,18 @@ internal class ResponseDetailsPanel : Panel
         }
     }
 
+    private void OnExportPayload(Object sender, EventArgs args)
+    {
+        try
+        {
+            this.TryExportPayload();
+        }
+        catch (Exception exception)
+        {
+            this.ShowError("Exporting payload failed unexpectedly.", this.Text, exception);
+        }
+    }
+
     #endregion
 
     #region Private Methods
@@ -367,7 +381,8 @@ internal class ResponseDetailsPanel : Panel
         this.txPayload.TabStop = true;
         this.txPayload.TabIndex = 0;
         this.txPayload.Visible = false;
-        this.txPayload.ContextMenuSelection = TextEditor.ContextMenuItems.ReadOnly | TextEditor.ContextMenuItems.Format;
+        this.txPayload.ContextMenuSelection = TextEditor.ContextMenuItems.ReadOnly | TextEditor.ContextMenuItems.Format | TextEditor.ContextMenuItems.Export;
+        this.txPayload.ExportPayload += this.OnExportPayload;
 
         this.dgHeaders.BackgroundColor = Color.White;
         this.dgHeaders.BorderStyle = BorderStyle.None;
@@ -394,6 +409,106 @@ internal class ResponseDetailsPanel : Panel
         this.pnContent.PerformLayout();
         this.pnHeader.ResumeLayout(false);
         this.pnHeader.PerformLayout();
+    }
+
+    private void TryExportPayload()
+    {
+        if (!this.Content.ResponsePayload.HasPayload)
+        {
+            return;
+        }
+
+        String filename = this.GetFilenameFromResponseHeaders("payload-export");
+        String extension = this.GetExtensionFromMediaType(".txt");
+
+        if (!Path.HasExtension(filename))
+        {
+            filename += extension;
+        }
+
+        IEnumerable<String> filters =
+        [
+            ResponseDetailsPanel.GetPartialFiler(Path.GetExtension(filename)),
+            ResponseDetailsPanel.GetPartialFiler(extension),
+            "All Files (*.*)|*.*",
+        ];
+
+        SaveFileDialog dialog = new SaveFileDialog();
+        dialog.Filter = String.Join("|", filters.Distinct());
+        dialog.FilterIndex = 1;
+        dialog.FileName = filename;
+        dialog.RestoreDirectory = true;
+
+        if (dialog.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        using Stream stream = dialog.OpenFile();
+        using BinaryWriter writer = new BinaryWriter(stream);
+
+        writer.Write(this.Content.ResponsePayload.Payload);
+        writer.Flush();
+    }
+
+    private String GetFilenameFromResponseHeaders(String fallback)
+    {
+        String filename = String.Empty;
+
+        try
+        {
+            // Lines below trying to extract "example-filename.ext" from the response headers.
+            // "Content-Disposition", "attachment; filename=example-filename.ext; filename*=UTF-8''example-filename.ext"
+            filename = this.Content.ResponseHeaders
+                .FirstOrDefault(x => String.Equals(x.Label, "Content-Disposition", StringComparison.OrdinalIgnoreCase))
+                .Value?
+                .Split(';')?
+                .FirstOrDefault(y => y.Contains("filename", StringComparison.OrdinalIgnoreCase))?
+                .Split('=')?
+                .LastOrDefault();
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception);
+        }
+
+        return String.IsNullOrWhiteSpace(filename) ? fallback : filename;
+    }
+
+    private String GetExtensionFromMediaType(String fallback)
+    {
+        String extension = String.Empty;
+
+        try
+        {
+            if (!String.IsNullOrWhiteSpace(this.Content.ResponsePayload.MediaType))
+            {
+                using RegistryKey registryKey = Registry.ClassesRoot.OpenSubKey(@$"MIME\Database\Content Type\{this.Content.ResponsePayload.MediaType}");
+
+                extension = registryKey.GetValue("Extension") as String;
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine(exception);
+        }
+
+        return String.IsNullOrWhiteSpace(extension) ? fallback : extension;
+    }
+
+    private static String GetPartialFiler(String extension)
+    {
+        String result = String.Empty;
+
+        if (!String.IsNullOrWhiteSpace(extension))
+        {
+            String label = $"{extension.TrimStart('.').ToUpperInvariant()} Files";
+            String value = $"*.{extension.TrimStart('.').ToLowerInvariant()}";
+
+            result = $"{label} ({value})|{value}";
+        }
+
+        return result;
     }
 
     #endregion

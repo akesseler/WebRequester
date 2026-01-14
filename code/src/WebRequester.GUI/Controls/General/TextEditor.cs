@@ -1,7 +1,7 @@
 ﻿/*
  * MIT License
  * 
- * Copyright (c) 2025 plexdata.de
+ * Copyright (c) 2026 plexdata.de
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,18 @@ internal class TextEditor : Panel
         }
     }
 
+    public event EventHandler<EventArgs> ExportPayload
+    {
+        add
+        {
+            this.editor.ExportPayload += value;
+        }
+        remove
+        {
+            this.editor.ExportPayload -= value;
+        }
+    }
+
     #endregion
 
     #region Public Types
@@ -62,11 +74,12 @@ internal class TextEditor : Panel
         Remove = 0x0020,
         Select = 0x0040,
         Format = 0x0080,
+        Export = 0x0100,
         Default = Find | Cut | Copy | Paste | Select,
         ReadOnly = Find | Copy | Select,
         Editable = Find | Undo | Cut | Copy | Paste | Remove | Select,
         Minimal = Cut | Copy | Paste,
-        Maximal = Find | Undo | Cut | Copy | Paste | Remove | Select | Format,
+        Maximal = Find | Undo | Cut | Copy | Paste | Remove | Select | Format | Export,
     }
 
     #endregion
@@ -115,7 +128,6 @@ internal class TextEditor : Panel
         {
             return this.editor.BackColor;
         }
-
         set
         {
             this.editor.BackColor = value;
@@ -201,6 +213,8 @@ internal class TextEditor : Panel
 
         public event EventHandler<FormatPayloadEventArgs> FormatPayload;
 
+        public event EventHandler<EventArgs> ExportPayload;
+
         #endregion
 
         #region Private Fields
@@ -227,6 +241,7 @@ internal class TextEditor : Panel
             base.HideSelection = false;
             base.Multiline = true;
             base.WordWrap = false;
+            base.ScrollBars = ScrollBars.Both;
 
             this.findPanel = new FindPanel(this);
         }
@@ -306,6 +321,14 @@ internal class TextEditor : Panel
             }
         }
 
+        public Boolean CanExport
+        {
+            get
+            {
+                return base.TextLength > 0;
+            }
+        }
+
         #endregion
 
         #region Protected Methods
@@ -323,12 +346,16 @@ internal class TextEditor : Panel
         protected override void WndProc(ref Message message)
         {
             const Int32 EM_SETSEL = 0x00B1;
+            const Int32 WM_PASTE = 0x0302;
 
             switch (message.Msg)
             {
                 case EM_SETSEL:
                     this.findPanel.Offset = message.WParam.ToInt32();
-                    break;
+                    break; // Execute default processing!
+                case WM_PASTE:
+                    this.OnPasteMenuItemClicked(this, EventArgs.Empty);
+                    return; // Prevent default processing!
             }
 
             base.WndProc(ref message);
@@ -414,6 +441,9 @@ internal class TextEditor : Panel
                             case ContextMenuItems.Undo:
                                 item.Enabled = base.CanUndo;
                                 break;
+                            case ContextMenuItems.Export:
+                                item.Enabled = this.CanExport;
+                                break;
                             case ContextMenuItems.Cut:
                                 item.Enabled = this.CanCut;
                                 break;
@@ -492,7 +522,14 @@ internal class TextEditor : Panel
         {
             try
             {
-                base.Paste();
+                foreach (TextDataFormat format in Enum.GetValues<TextDataFormat>())
+                {
+                    if (Clipboard.ContainsText(format))
+                    {
+                        base.SelectedText = Clipboard.GetText(format);
+                        return;
+                    }
+                }
             }
             catch (Exception exception)
             {
@@ -548,6 +585,18 @@ internal class TextEditor : Panel
             }
         }
 
+        private void OnExportMenuItemClicked(Object sender, EventArgs args)
+        {
+            try
+            {
+                this.ExportPayload?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine(exception);
+            }
+        }
+
         #endregion
 
         #region Private Methods
@@ -590,11 +639,22 @@ internal class TextEditor : Panel
                 separator = true;
             }
 
+            if (selection.HasFlag(ContextMenuItems.Export))
+            {
+                item = new ToolStripMenuItem();
+                item.Tag = ContextMenuItems.Export;
+                item.Text = "Export";
+                item.Click += this.OnExportMenuItemClicked;
+                menu.Items.Add(item);
+
+                separator = true;
+            }
+
             if (separator)
             {
                 separator = false;
 
-                ContextMenuItems excluded = ContextMenuItems.Find | ContextMenuItems.Undo;
+                ContextMenuItems excluded = ContextMenuItems.Find | ContextMenuItems.Undo | ContextMenuItems.Export;
                 ContextMenuItems included = selection & ~excluded;
 
                 if (included != ContextMenuItems.None)
@@ -640,7 +700,7 @@ internal class TextEditor : Panel
             {
                 separator = false;
 
-                ContextMenuItems excluded = ContextMenuItems.Find | ContextMenuItems.Undo | ContextMenuItems.Cut | ContextMenuItems.Copy | ContextMenuItems.Paste;
+                ContextMenuItems excluded = ContextMenuItems.Find | ContextMenuItems.Undo | ContextMenuItems.Export | ContextMenuItems.Cut | ContextMenuItems.Copy | ContextMenuItems.Paste;
                 ContextMenuItems included = selection & ~excluded;
 
                 if (included != ContextMenuItems.None)
@@ -675,7 +735,7 @@ internal class TextEditor : Panel
             {
                 separator = false;
 
-                ContextMenuItems excluded = ContextMenuItems.Find | ContextMenuItems.Undo | ContextMenuItems.Cut | ContextMenuItems.Copy | ContextMenuItems.Paste | ContextMenuItems.Remove | ContextMenuItems.Select;
+                ContextMenuItems excluded = ContextMenuItems.Find | ContextMenuItems.Undo | ContextMenuItems.Export | ContextMenuItems.Cut | ContextMenuItems.Copy | ContextMenuItems.Paste | ContextMenuItems.Remove | ContextMenuItems.Select;
                 ContextMenuItems included = selection & ~excluded;
 
                 if (included != ContextMenuItems.None)
